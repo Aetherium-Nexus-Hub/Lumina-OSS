@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppStore } from './hooks/useAppStore';
+import { useAppStoreComplete } from './hooks/useAppStore';
 import { AppProvider } from './context/AppContext';
 import { Header } from './components/Header';
 import { ShaderCanvas } from './components/ShaderCanvas';
@@ -11,10 +11,10 @@ import { NewSessionModal } from './components/NewSessionModal';
 import { DpadControls } from './components/DpadControls';
 
 const App = () => {
-  const store = useAppStore();
+  const store = useAppStoreComplete();
   
   return (
-    <AppProvider value={store as any}>
+    <AppProvider value={store}>
       <div className="flex flex-col h-screen bg-black overflow-hidden font-sans select-none text-gray-200">
         <Header />
         
