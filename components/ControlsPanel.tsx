@@ -120,10 +120,10 @@ const TabButton: React.FC<{
     onClick={onClick}
     role="tab"
     aria-selected={isActive}
-    className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors border-b-2 whitespace-nowrap
+    className={`px-4 py-1.5 text-xs font-bold uppercase font-orbitron tracking-widest rounded-t transition-all border-b-2 whitespace-nowrap
                 ${isActive
-                  ? 'text-cyan-400 border-cyan-400 bg-gray-800/50'
-                  : 'text-gray-400 border-transparent hover:text-white hover:bg-gray-700/30'
+                  ? 'text-[#00f2ff] border-[#00f2ff] bg-cyan-950/25 shadow-[inset_0_-3px_8px_rgba(0,242,255,0.05)]'
+                  : 'text-slate-400 border-transparent hover:text-white hover:bg-cyan-950/10'
                 }`}
   >
     {label}
@@ -1236,7 +1236,7 @@ export const ControlsPanel: React.FC = () => {
       
       {/* Modal panel */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-gray-800/60 backdrop-blur-md border-t border-gray-700 rounded-t-2xl shadow-2xl
+        className="fixed bottom-0 left-0 right-0 z-50 glass-panel border-t border-cyan-800/30 rounded-t-xl shadow-2xl
                    sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:rounded-xl sm:border sm:w-auto
                    flex flex-col max-h-[70vh]"
         style={{
@@ -1278,27 +1278,27 @@ export const ControlsPanel: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-4 pt-4 pb-2 border-b border-gray-700">
-          <h2 id="controls-heading" className="text-lg font-semibold text-white flex items-center gap-2">
+        <div className="flex-shrink-0 flex items-center justify-between px-4 pt-4 pb-2 border-b border-cyan-800/20 bg-slate-950/20">
+          <h2 id="controls-heading" className="text-sm font-bold text-white flex items-center gap-2">
               <AdjustmentsIcon className="w-5 h-5 text-cyan-400" />
-              <span>Gemini Shader Pilot</span>
-              <span className="text-xs font-normal text-gray-400 ml-1">
+              <span className="font-orbitron tracking-widest text-[#00f2ff] uppercase">Aetherium Pilot Controller</span>
+              <span className="text-[10px] font-normal text-slate-500 font-sans tracking-wide ml-1">
                   by <a href="https://x.com/pitaru" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@pitaru</a>
               </span>
           </h2>
           <div className="flex items-center gap-3">
             <button 
                 onClick={() => setIsControlsOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-gray-700/50"
+                className="text-cyan-400 hover:text-white transition-colors p-1 rounded-full hover:bg-cyan-500/10"
                 aria-label="Close controls"
             >
-                <XCircleIcon className="w-6 h-6" />
+                <XCircleIcon className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex-shrink-0 flex overflow-x-auto px-4 pt-2 gap-1 border-b border-gray-700 no-scrollbar">
+        <div className="flex-shrink-0 flex overflow-x-auto px-4 pt-1.5 gap-1 border-b border-cyan-800/20 bg-slate-950/10 no-scrollbar">
             <TabButton label="World" isActive={activeTab === 'sliders'} onClick={() => setActiveTab('sliders')} />
             {cameraControlsEnabled && <TabButton label="Ship" isActive={activeTab === 'ship'} onClick={() => setActiveTab('ship')} />}
             <TabButton label="Sound" isActive={activeTab === 'sound'} onClick={() => setActiveTab('sound')} />

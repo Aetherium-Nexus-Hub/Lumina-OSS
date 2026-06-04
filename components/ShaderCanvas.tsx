@@ -108,7 +108,7 @@ export const ShaderCanvas: React.FC = React.memo(() => {
         desynchronized: true
     });
     if (!gl) {
-      onError('WebGL 2 is not supported on this browser.');
+      if (onError) onError('WebGL 2 is not supported on this browser.');
       return;
     }
 
@@ -149,6 +149,12 @@ export const ShaderCanvas: React.FC = React.memo(() => {
         );
       }
 
+      float hash21(vec2 p) {
+        p = fract(p * vec2(123.34, 456.21));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
+      }
+
       void main() {
         vec4 o = vec4(0.0, 0.0, 0.0, 1.0);
         vec2 r = u_resolution;
@@ -160,17 +166,17 @@ export const ShaderCanvas: React.FC = React.memo(() => {
     `;
 
     const vsResult = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER_SRC);
-    if (typeof vsResult === 'string') { onError(vsResult); return; }
+    if (typeof vsResult === 'string') { if (onError) onError(vsResult); return; }
     const vs = vsResult;
 
     const fsResult = compileShader(gl, gl.FRAGMENT_SHADER, fragmentTemplate);
-    if (typeof fsResult === 'string') { gl.deleteShader(vs); onError(fsResult); return; }
+    if (typeof fsResult === 'string') { gl.deleteShader(vs); if (onError) onError(fsResult); return; }
     const fs = fsResult;
     
     const programResult = createProgram(gl, vs, fs);
     gl.deleteShader(vs);
     gl.deleteShader(fs);
-    if (typeof programResult === 'string') { onError(programResult); return; }
+    if (typeof programResult === 'string') { if (onError) onError(programResult); return; }
     const program = programResult;
     
     const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
@@ -199,7 +205,7 @@ export const ShaderCanvas: React.FC = React.memo(() => {
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-    onError("");
+    if (onError) onError("");
 
     let animationFrameId: number;
     let accumulatedTime = 0;

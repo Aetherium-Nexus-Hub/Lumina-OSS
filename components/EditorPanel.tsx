@@ -83,7 +83,7 @@ export const EditorPanel: React.FC = () => {
   return (
     <aside
       className={`
-        bg-gray-900/70 backdrop-blur-md border-l border-gray-700 
+        glass-panel border-l border-cyan-800/20 
         flex flex-col
         fixed inset-y-0 right-0 w-full max-w-md z-40
         transform transition-transform duration-300 ease-in-out
@@ -95,27 +95,27 @@ export const EditorPanel: React.FC = () => {
       `}
     >
       <div className={`overflow-hidden flex flex-col h-full ${isVisible ? 'min-w-[300px] lg:min-w-[450px]' : 'min-w-0'}`}>
-        <div className="flex-shrink-0 flex items-center justify-between p-2 lg:hidden border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-200">Editor</h2>
+        <div className="flex-shrink-0 flex items-center justify-between p-3 lg:hidden border-b border-cyan-800/20 bg-slate-950/40">
+          <h2 className="text-sm font-semibold text-cyan-400 font-orbitron tracking-widest uppercase">Editor</h2>
           <button 
             onClick={() => setIsSidebarVisible(false)} 
-            className="p-2 rounded-md hover:bg-gray-700"
+            className="p-1.5 rounded-md hover:bg-cyan-500/10 text-cyan-400"
             aria-label="Close editor"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         <div className="flex-grow overflow-y-auto">
             <div className="p-4">
               <div className="flex justify-between items-center mb-2">
-                <label htmlFor="shader-editor" className="block text-sm font-medium text-gray-300">
+                <label htmlFor="shader-editor" className="block text-xs font-semibold text-cyan-400 font-orbitron tracking-widest uppercase">
                   Fragment Shader (GLSL)
                 </label>
                 {selectedSnippet && (
                     <button
                         onClick={() => onExplainCode(selectedSnippet)}
                         disabled={isGeneratingExplanation}
-                        className="flex items-center gap-1.5 px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-md transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                        className="flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/20 text-xs font-semibold rounded-md transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
                     >
                         <QuestionMarkCircleIcon className={`text-sm ${isGeneratingExplanation ? 'animate-spin' : ''}`} />
                         {isGeneratingExplanation ? 'Explaining...' : 'Explain Selection'}
@@ -129,19 +129,19 @@ export const EditorPanel: React.FC = () => {
                   onSelect={handleSelect}
                   value={shaderCode}
                   onChange={(e) => onCodeChange(e.target.value)}
-                  className="w-full h-40 p-3 bg-gray-950/80 border border-gray-600 rounded-md font-mono text-sm text-cyan-300 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none resize-y"
+                  className="notebook-textarea rounded-md h-48 outline-none"
                   spellCheck="false"
                   autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="off"
                 />
               </div>
-              <div className="mt-3 flex justify-end">
+              <div className="mt-2.5 flex justify-end">
                 <button
                     onClick={onRun}
-                    className="flex items-center gap-2 px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-md transition-all duration-200 transform hover:scale-105 shadow-lg"
+                    className="flex items-center gap-2 px-5 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/35 border border-cyan-400/40 text-cyan-400 font-orbitron font-bold rounded shadow-[0_0_10px_rgba(0,242,255,0.2)] transition-all duration-200"
                 >
-                    <PlayIcon className="text-xl" />
+                    <PlayIcon className="text-base" />
                     Run
                 </button>
               </div>
@@ -368,9 +368,9 @@ export const EditorPanel: React.FC = () => {
             </div>
         </div>
         
-        <div className="p-4 bg-gray-950/50 border-t border-gray-700">
+        <div className="p-4 bg-slate-950/80 border-t border-cyan-800/20">
           <div className="relative space-y-3 mb-4">
-              <label htmlFor="ai-prompt" className="block text-sm font-medium text-gray-300">
+              <label htmlFor="ai-prompt" className="block text-xs font-semibold text-cyan-400 font-orbitron tracking-widest uppercase">
                 Talk to shader:
               </label>
               <input 
@@ -379,14 +379,14 @@ export const EditorPanel: React.FC = () => {
                 value={geminiPrompt}
                 onChange={(e) => onGeminiPromptChange(e.target.value)}
                 placeholder="e.g., make it more blue"
-                className="w-full p-2 bg-gray-950/80 border border-gray-600 rounded-md text-sm text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                className="w-full p-2 bg-slate-950/90 border border-cyan-800/30 text-sm text-[#00f2ff] placeholder-cyan-900 rounded focus:outline-none focus:border-[#00f2ff] focus:shadow-[0_0_10px_rgba(0,242,255,0.15)] outline-none transition-all"
                 disabled={isGenerating}
               />
-              <div className="h-4 text-xs text-center text-gray-400">
+              <div className="h-4 text-xs text-center text-cyan-400 font-medium">
                   {aiStatusText}
               </div>
                 {geminiError && (
-                <div className="text-red-400 text-xs p-2 rounded-md bg-red-900/50 border border-red-700">
+                <div className="text-red-400 text-xs p-2 rounded-md bg-red-950/40 border border-red-900/40">
                   <p><span className="font-bold">AI Error:</span> {geminiError}</p>
                 </div>
               )}
@@ -395,20 +395,20 @@ export const EditorPanel: React.FC = () => {
             <button
                 onClick={onAiRequest}
                 disabled={isGenerating || !geminiPrompt}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-md transition-all duration-200 transform hover:scale-105 shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed disabled:scale-100"
+                className="flex items-center gap-2 px-4 py-2 bg-[#00f2ff]/10 hover:bg-[#00f2ff]/30 text-[#00f2ff] font-bold font-orbitron text-xs tracking-wider border border-[#00f2ff]/30 rounded shadow-[0_0_8px_rgba(0,242,255,0.1)] transition-all duration-200 disabled:opacity-30 disabled:pointer-events-none"
                 title="Use AI to generate new shader code or controls"
             >
-                <SparklesIcon className={`text-xl ${aiStage !== AiStage.ADJUSTING_SLIDERS && isGenerating ? 'animate-spin' : ''}`} />
-                {aiStage !== AiStage.ADJUSTING_SLIDERS && isGenerating ? 'Thinking...' : 'Create Control'}
+                <SparklesIcon className={`text-base ${aiStage !== AiStage.IDLE && isGenerating ? 'animate-spin border-cyan-400 text-[#00f2ff]' : ''}`} />
+                {aiStage !== AiStage.IDLE && isGenerating ? 'Thinking...' : 'Create Control'}
             </button>
              {sliders.length > 0 && (
                 <button
                     onClick={onAiSliderAdjust}
                     disabled={isGenerating || !geminiPrompt}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-md transition-all duration-200 transform hover:scale-105 shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed disabled:scale-100"
+                    className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 hover:bg-yellow-500/35 text-yellow-400 font-bold font-orbitron text-xs tracking-wider border border-yellow-500/30 rounded shadow-[0_0_8px_rgba(255,204,0,0.1)] transition-all duration-200 disabled:opacity-30 disabled:pointer-events-none"
                     title="Use AI to adjust existing sliders"
                 >
-                    <AdjustmentsIcon className={`text-xl ${aiStage === AiStage.ADJUSTING_SLIDERS ? 'animate-spin' : ''}`} />
+                    <AdjustmentsIcon className={`text-base ${aiStage === AiStage.ADJUSTING_SLIDERS ? 'animate-spin' : ''}`} />
                     {aiStage === AiStage.ADJUSTING_SLIDERS ? 'Adjusting...' : 'Adjust values'}
                 </button>
             )}

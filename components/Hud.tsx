@@ -72,7 +72,7 @@ export const Hud: React.FC = () => {
                 ctx.strokeStyle = `rgba(${baseColorStr}, ${0.5 * hudAlpha})`;
                 ctx.fillStyle = `rgba(${baseColorStr}, ${0.8 * hudAlpha})`;
                 ctx.lineWidth = 2;
-                ctx.font = 'bold 12px monospace';
+                ctx.font = 'bold 11px Orbitron, Rajdhani, monospace';
 
                 // --- HORIZON LINE ---
                 const fovY = Math.PI / 2; // Assume 90 deg FOV

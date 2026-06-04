@@ -17,6 +17,7 @@ export interface AppContextType {
   handleCodeEdit: (code: string) => void;
   handleRun: () => void;
   error: string | null;
+  handleShaderError: (error: string) => void;
 
   // Slider State
   sliders: Slider[];
@@ -153,6 +154,7 @@ export interface AppContextType {
   addShipModulation: (mod: ShipModulation) => void;
   updateShipModulation: (id: string, newConfig: Partial<ShipModulation>) => void;
   removeShipModulation: (id: string) => void;
+  audioInputsRef: MutableRefObject<Record<string, number>>;
 }
 
 

@@ -31,49 +31,177 @@ export const Header: React.FC = () => {
         handleLoadSession,
         handleSaveSession,
         handleUndo,
-        historyIndex,
+        historyIndex = 0,
         handleRedo,
-        history,
+        history = [],
         fileInputRef,
         handleFileChange,
     } = useAppContext();
 
+    const [clockStr, setClockStr] = useState('-- : -- : --');
+    const [countdownStr, setCountdownStr] = useState('--D : --H : --M');
+    const [isGlitching, setIsGlitching] = useState(false);
+
+    useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            const timeStr = [
+                now.getHours().toString().padStart(2, '0'),
+                now.getMinutes().toString().padStart(2, '0'),
+                now.getSeconds().toString().padStart(2, '0')
+            ].join(' : ');
+            setClockStr(timeStr);
+        };
+        updateTime();
+        const interval = setInterval(updateTime, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const updateCountdown = () => {
+            const targetDate = new Date("May 14, 2026 00:00:00").getTime();
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+            if (distance < 0) {
+                setCountdownStr("00D : 00H : 00M");
+                return;
+            }
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            setCountdownStr(
+                `${days.toString().padStart(2, '0')}D : ${hours.toString().padStart(2, '0')}H : ${minutes.toString().padStart(2, '0')}M`
+            );
+        };
+        updateCountdown();
+        const interval = setInterval(updateCountdown, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Random glitch effect every few seconds
+    useEffect(() => {
+        const triggerGlitch = () => {
+            setIsGlitching(true);
+            const timer = setTimeout(() => setIsGlitching(false), 250);
+            return () => clearTimeout(timer);
+        };
+        const interval = setInterval(triggerGlitch, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const canUndo = historyIndex > 0;
+    const canRedo = history && historyIndex < history.length - 1;
+
     return (
-        <header className="bg-gray-950/50 backdrop-blur-sm border-b border-gray-700 p-2 flex justify-between items-center z-20 flex-shrink-0">
-            <div className="flex items-center gap-2 bg-gray-800 px-2 py-1 rounded-md">
-                <button onClick={handlePlayPause} title={playbackState === 'playing' ? "Pause" : "Play"} className="p-1.5 rounded-md hover:bg-gray-700 transition-colors">
-                    {playbackState === 'playing' ? <PauseIcon className="text-base" /> : <PlayIcon className="text-base" />}
-                </button>
-                <button onClick={handleStop} title="Stop & Reset Time" className="p-1.5 rounded-md hover:bg-gray-700 transition-colors">
-                    <StopIcon className="text-base" />
-                </button>
-                <button onClick={handleRestart} title="Restart" className="p-1.5 rounded-md hover:bg-gray-700 transition-colors">
-                    <ArrowPathIcon className="text-base" />
-                </button>
+        <header className="bg-[#0a1419]/80 backdrop-blur-md border-b border-cyan-900/40 p-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 z-20 flex-shrink-0 relative">
+            
+            {/* Left Section: Telemetry & Title */}
+            <div className="flex flex-col">
+                <h1 className={`system-font text-2xl font-bold uppercase tracking-widest text-[#00f2ff] duration-75 ${isGlitching ? 'glitch-text' : ''}`}>
+                    Aetherium Nexus
+                </h1>
+                <p className="text-cyan-600 font-semibold text-[10px] tracking-[0.2em] uppercase">
+                    CODEX_NOTEBOOK_INTEGRATED // V1.2
+                </p>
+                <div className="flex items-center space-x-3 mt-1 text-xs system-font font-medium">
+                    <span className="text-slate-400">Observer ID: <span className="text-cyan-400 font-bold">ObservX</span></span>
+                    <span className="text-slate-600">|</span>
+                    <span className="text-slate-400">Coherence: <span className="text-yellow-400 font-bold glow-gold">1.622 [PHI]</span></span>
+                </div>
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-2">
-                <div className="hidden sm:flex items-center gap-1 sm:gap-2">
-                    <button onClick={handleNewSessionClick} className="p-2 rounded-md hover:bg-gray-700 transition-colors" title="New Session"><DocumentPlusIcon className="text-base" /></button>
-                    <button onClick={handleLoadSession} className="p-2 rounded-md hover:bg-gray-700 transition-colors" title="Load Session"><LoadIcon className="text-base" /></button>
-                    <button onClick={handleSaveSession} className="p-2 rounded-md hover:bg-gray-700 transition-colors" title="Save Session"><SaveIcon className="text-base" /></button>
+            {/* Middle Section: Integrated Controls App Toolbar */}
+            <div className="flex flex-wrap items-center gap-2 bg-slate-950/70 border border-cyan-500/10 p-1.5 rounded-lg">
+                
+                {/* Playback Controls Group */}
+                <div className="flex items-center gap-1.5 px-2 py-0.5 border-r border-cyan-500/10 last:border-0">
+                    <button 
+                        onClick={handlePlayPause} 
+                        title={playbackState === 'playing' ? "Pause" : "Play"} 
+                        className={`p-1.5 rounded transition-all text-xs border ${
+                            playbackState === 'playing' 
+                            ? 'bg-cyan-500/10 text-[#00f2ff] border-cyan-500/20' 
+                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        } hover:scale-105 active:scale-95`}
+                    >
+                        {playbackState === 'playing' ? <PauseIcon className="text-base" /> : <PlayIcon className="text-base font-bold" />}
+                    </button>
+                    <button 
+                        onClick={handleStop} 
+                        title="Stop & Reset Time" 
+                        className="p-1.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 transition-all hover:scale-105 active:scale-95"
+                    >
+                        <StopIcon className="text-base" />
+                    </button>
+                    <button 
+                        onClick={handleRestart} 
+                        title="Restart" 
+                        className="p-1.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 transition-all hover:scale-105 active:scale-95"
+                    >
+                        <ArrowPathIcon className="text-base" />
+                    </button>
                 </div>
-                
-                <div className="w-px h-6 bg-gray-700 mx-1 hidden sm:block"></div>
 
-                <button onClick={handleUndo} disabled={historyIndex <= 0} className="p-2 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" title="Undo"><UndoIcon className="text-base" /></button>
-                <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className="p-2 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" title="Redo"><RedoIcon className="text-base" /></button>
+                {/* Session Actions Group */}
+                <div className="flex items-center gap-1.5 px-2 py-0.5 border-r border-cyan-500/10 last:border-0">
+                    <button 
+                        onClick={handleNewSessionClick} 
+                        className="p-1.5 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyan-500/30 hover:text-[#00f2ff] transition-all" 
+                        title="New Session"
+                    >
+                        <DocumentPlusIcon className="text-sm" />
+                    </button>
+                    <button 
+                        onClick={handleLoadSession} 
+                        className="p-1.5 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyan-500/30 hover:text-[#00f2ff] transition-all" 
+                        title="Load Session"
+                    >
+                        <LoadIcon className="text-sm" />
+                    </button>
+                    <button 
+                        onClick={handleSaveSession} 
+                        className="p-1.5 rounded bg-slate-900 text-slate-300 border border-slate-700 hover:border-cyan-500/30 hover:text-[#00f2ff] transition-all" 
+                        title="Save Session"
+                    >
+                        <SaveIcon className="text-sm" />
+                    </button>
+                </div>
 
-                <div className="w-px h-6 bg-gray-700 mx-1"></div>
+                {/* Navigation / History Group */}
+                <div className="flex items-center gap-1.5 px-2 py-0.5 border-r border-cyan-500/10 last:border-0">
+                    <button 
+                        onClick={handleUndo} 
+                        disabled={!canUndo} 
+                        className="p-1.5 rounded bg-slate-900 text-slate-300 border border-slate-700/80 hover:border-cyan-500/30 hover:text-[#00f2ff] disabled:opacity-30 disabled:pointer-events-none transition-all" 
+                        title="Undo"
+                    >
+                        <UndoIcon className="text-sm" />
+                    </button>
+                    <button 
+                        onClick={handleRedo} 
+                        disabled={!canRedo} 
+                        className="p-1.5 rounded bg-slate-900 text-slate-300 border border-slate-700/80 hover:border-cyan-500/30 hover:text-[#00f2ff] disabled:opacity-30 disabled:pointer-events-none transition-all" 
+                        title="Redo"
+                    >
+                        <RedoIcon className="text-sm" />
+                    </button>
+                </div>
 
-                <button
-                    onClick={() => setIsSidebarVisible(!isSidebarVisible)}
-                    className="p-2 rounded-md hover:bg-gray-700 transition-colors"
-                    title={isSidebarVisible ? "Hide Editor" : "Show Editor"}
-                >
-                    <CodeIcon className="text-base" />
-                </button>
-                
+                {/* Sidebar Edit / Code Viewer */}
+                <div className="flex items-center px-1.5">
+                    <button
+                        onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+                        className={`p-1.5 rounded transition-all border ${
+                            isSidebarVisible 
+                            ? 'bg-cyan-500/20 text-[#00f2ff] border-cyan-400 font-bold' 
+                            : 'bg-slate-900 text-slate-400 border-slate-700'
+                        } hover:border-[#00f2ff] hover:text-[#00f2ff]`}
+                        title={isSidebarVisible ? "Hide Editor" : "Show Editor"}
+                    >
+                        <CodeIcon className="text-sm" />
+                    </button>
+                </div>
+
                 <input
                     type="file"
                     ref={fileInputRef}
@@ -81,6 +209,24 @@ export const Header: React.FC = () => {
                     className="hidden"
                     accept=".json"
                 />
+            </div>
+
+            {/* Right Section: Time Convergence displays */}
+            <div className="flex flex-col md:items-end text-left md:text-right font-orbitron">
+                <div className="text-[9px] text-cyan-600 uppercase tracking-widest mb-0.5">
+                    Nexus Convergence In
+                </div>
+                <div id="countdown" className="text-yellow-400 font-bold text-xl glow-gold tracking-wider">
+                    {countdownStr}
+                </div>
+                <div id="clock" className="text-[11px] text-slate-400 font-medium tracking-widest mt-0.5 text-cyan-500/80 glow-blue">
+                    {clockStr}
+                </div>
+            </div>
+
+            {/* bottom absolute coherence bar */}
+            <div className="absolute bottom-0 left-0 w-full transform translate-y-[1px]">
+                <div className="coherence-bar"></div>
             </div>
         </header>
     );

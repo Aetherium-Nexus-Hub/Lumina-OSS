@@ -3,9 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gemini Shader Pilot | @Pitaru</title>
+    <title>Aetherium Nexus - Animus Journal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              animus: {
+                blue: '#00f2ff',
+                gold: '#ffcc00',
+                dark: '#0a1419',
+              }
+            },
+            fontFamily: {
+              sans: ['Rajdhani', 'sans-serif'],
+              mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+              orbitron: ['Orbitron', 'sans-serif'],
+              rajdhani: ['Rajdhani', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
   <script type="importmap">
 {
   "imports": {
@@ -27,7 +48,9 @@
 </style>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-gray-900">
+  <body class="bg-[#0a1419] text-slate-300 font-sans min-h-screen">
+    <div class="animus-grid"></div>
+    <div class="scanline"></div>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
