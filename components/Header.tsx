@@ -4,8 +4,8 @@
 */
 
 
-import React from 'react';
-import { CodeIcon, SaveIcon, LoadIcon, UndoIcon, RedoIcon, DocumentPlusIcon, PlayIcon, PauseIcon, StopIcon, ArrowPathIcon } from './Icons';
+import React, { useState, useEffect } from 'react';
+import { CodeIcon, SaveIcon, LoadIcon, UndoIcon, RedoIcon, DocumentPlusIcon, PlayIcon, PauseIcon, StopIcon, ArrowPathIcon, AdjustmentsIcon } from './Icons';
 import { useAppContext } from '../context/AppContext';
 
 const MenuButton: React.FC<{ onClick?: () => void; disabled?: boolean; children: React.ReactNode; className?: string; }> = ({ onClick, disabled, children, className }) => (
@@ -36,6 +36,8 @@ export const Header: React.FC = () => {
         history = [],
         fileInputRef,
         handleFileChange,
+        isControlsOpen,
+        setIsControlsOpen,
     } = useAppContext();
 
     const [clockStr, setClockStr] = useState('-- : -- : --');
@@ -59,11 +61,23 @@ export const Header: React.FC = () => {
 
     useEffect(() => {
         const updateCountdown = () => {
-            const targetDate = new Date("May 14, 2026 00:00:00").getTime();
+            let targetStr = localStorage.getItem('nexus_convergence_target_v2');
+            if (!targetStr) {
+                const sevenDaysOut = new Date();
+                sevenDaysOut.setDate(sevenDaysOut.getDate() + 7);
+                sevenDaysOut.setHours(12, 0, 0, 0); // Noon
+                targetStr = sevenDaysOut.toISOString();
+                localStorage.setItem('nexus_convergence_target_v2', targetStr);
+            }
+            const targetDate = new Date(targetStr).getTime();
             const now = new Date().getTime();
             const distance = targetDate - now;
             if (distance < 0) {
-                setCountdownStr("00D : 00H : 00M");
+                const nextSevenDays = new Date();
+                nextSevenDays.setDate(nextSevenDays.getDate() + 7);
+                nextSevenDays.setHours(12, 0, 0, 0);
+                localStorage.setItem('nexus_convergence_target_v2', nextSevenDays.toISOString());
+                setCountdownStr("07D : 00H : 00M");
                 return;
             }
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -188,7 +202,7 @@ export const Header: React.FC = () => {
                 </div>
 
                 {/* Sidebar Edit / Code Viewer */}
-                <div className="flex items-center px-1.5">
+                <div className="flex items-center px-1.5 gap-1.5">
                     <button
                         onClick={() => setIsSidebarVisible(!isSidebarVisible)}
                         className={`p-1.5 rounded transition-all border ${
@@ -199,6 +213,17 @@ export const Header: React.FC = () => {
                         title={isSidebarVisible ? "Hide Editor" : "Show Editor"}
                     >
                         <CodeIcon className="text-sm" />
+                    </button>
+                    <button
+                        onClick={() => setIsControlsOpen(!isControlsOpen)}
+                        className={`p-1.5 rounded transition-all border ${
+                            isControlsOpen 
+                            ? 'bg-[#00f2ff]/20 text-[#00f2ff] border-[#00f2ff] font-bold shadow-[0_0_8px_rgba(0,242,255,0.2)]' 
+                            : 'bg-slate-900 text-slate-400 border-slate-700 hover:border-[#00f2ff] hover:text-[#00f2ff]'
+                        }`}
+                        title={isControlsOpen ? "Hide Pilot Controls" : "Show Pilot Controls"}
+                    >
+                        <AdjustmentsIcon className="text-sm" />
                     </button>
                 </div>
 

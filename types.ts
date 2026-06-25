@@ -52,6 +52,9 @@ export interface ControlConfig {
     ascendVelocity?: number;
     pitchVelocity?: number;
     yawVelocity?: number;
+    enableGestureControls?: boolean;
+    gestureMode?: 'touch' | 'tilt' | 'webcam';
+    gestureSensitivity?: number;
 }
 
 // Expanded Inputs
@@ -181,4 +184,14 @@ export interface ShipConfig {
     generalScale?: number;
     translucency?: number;
     modulations: ShipModulation[];
+}
+
+export interface Landmark {
+  id: string;
+  name: string;
+  description: string;
+  position: [number, number, number];
+  rotation: [number, number];
+  sessionId: string;
+  isCustom?: boolean;
 }

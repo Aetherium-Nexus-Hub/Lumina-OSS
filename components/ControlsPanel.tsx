@@ -83,10 +83,10 @@ const NumberInputWithSteppers: React.FC<{
     };
 
     return (
-        <div className={`flex items-center gap-1 bg-gray-900/50 border border-gray-700 rounded-md ${className}`}>
+        <div className={`flex items-center bg-slate-950 border border-cyan-900/40 text-cyan-400 font-mono text-xs rounded shadow-[0_0_8px_rgba(0,242,255,0.03)] overflow-hidden ${className}`}>
             <button
                 onClick={() => handleStep(-smallStep)}
-                className="px-2 py-0.5 text-gray-400 hover:text-white rounded-l-md"
+                className="px-1.5 py-0.5 text-cyan-600 hover:text-[#00f2ff] hover:bg-cyan-950/40 font-mono text-[10px] select-none transition-colors cursor-pointer border-r border-cyan-950"
                 aria-label={`Decrement by ${smallStep}`}
             >
                 -
@@ -98,11 +98,11 @@ const NumberInputWithSteppers: React.FC<{
                 onChange={handleInputChange}
                 onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
-                className="w-20 bg-transparent text-center font-mono text-cyan-400 text-sm focus:outline-none"
+                className="w-14 bg-transparent text-center font-mono text-[#00f2ff] text-[11px] focus:outline-none outline-none select-all"
             />
             <button
                 onClick={() => handleStep(smallStep)}
-                className="px-2 py-0.5 text-gray-400 hover:text-white rounded-r-md"
+                className="px-1.5 py-0.5 text-cyan-600 hover:text-[#00f2ff] hover:bg-cyan-950/40 font-mono text-[10px] select-none transition-colors cursor-pointer border-l border-cyan-950"
                 aria-label={`Increment by ${smallStep}`}
             >
                 +
@@ -120,13 +120,15 @@ const TabButton: React.FC<{
     onClick={onClick}
     role="tab"
     aria-selected={isActive}
-    className={`px-4 py-1.5 text-xs font-bold uppercase font-orbitron tracking-widest rounded-t transition-all border-b-2 whitespace-nowrap
+    className={`relative px-3 py-2 text-[10px] font-bold uppercase font-orbitron tracking-widest transition-all duration-200 border-r border-cyan-900/15
+                flex flex-col items-center justify-center min-w-[70px] h-11 cursor-pointer select-none
                 ${isActive
-                  ? 'text-[#00f2ff] border-[#00f2ff] bg-cyan-950/25 shadow-[inset_0_-3px_8px_rgba(0,242,255,0.05)]'
-                  : 'text-slate-400 border-transparent hover:text-white hover:bg-cyan-950/10'
+                  ? 'bg-cyan-950/35 text-[#00f2ff] border-t-2 border-t-[#00f2ff] shadow-[inset_0_2px_8px_rgba(0,242,255,0.12)]'
+                  : 'bg-slate-950/70 text-cyan-800 hover:bg-slate-900 border-t-2 border-t-transparent hover:text-cyan-400'
                 }`}
   >
-    {label}
+    <span className={`w-1 h-1 rounded-full mb-1 transition-all duration-300 ${isActive ? 'bg-[#00f2ff] shadow-[0_0_6px_#00f2ff,0_0_2px_#fff]' : 'bg-cyan-950/60'}`} />
+    <span className="text-[10px] uppercase font-bold text-center">{label}</span>
   </button>
 );
 
@@ -135,41 +137,53 @@ const SlidersPanel: React.FC = () => {
     return (
       <div className="space-y-4">
           {sliders.length > 0 ? (
-              sliders.map((slider) => (
-                <div key={slider.variableName} className="space-y-3">
-                    <div className="flex justify-between items-center">
-                        <label 
-                            htmlFor={slider.variableName}
-                            className="text-sm text-gray-300 cursor-help border-b border-dotted border-gray-500/50"
-                            title={slider.description}
-                        >
-                            {slider.name}
-                        </label>
-                        <NumberInputWithSteppers
-                            value={uniforms[slider.variableName] ?? slider.defaultValue}
-                            onChange={(newValue) => handleUniformChange(slider.variableName, newValue)}
-                            step={slider.step}
-                            min={slider.min}
-                            max={slider.max}
-                        />
-                    </div>
-                    <input
-                        type="range"
-                        id={slider.variableName}
-                        name={slider.variableName}
-                        min={slider.min}
-                        max={slider.max}
-                        step={slider.step}
-                        value={uniforms[slider.variableName] ?? slider.defaultValue}
-                        onChange={(e) => handleUniformChange(slider.variableName, parseFloat(e.target.value))}
-                        onMouseUp={handleUniformsCommit}
-                        onTouchEnd={handleUniformsCommit}
-                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500"
-                    />
-                </div>
-              ))
+              sliders.map((slider) => {
+                const currentVal = uniforms[slider.variableName] ?? slider.defaultValue;
+                const percent = Math.max(0, Math.min(100, ((currentVal - slider.min) / (slider.max - slider.min)) * 100));
+                return (
+                  <div key={slider.variableName} className="p-3.5 bg-slate-950/65 border border-cyan-900/20 hover:border-cyan-500/30 rounded-md transition-all relative group">
+                      <div className="absolute top-1 right-1 flex gap-0.5 opacity-25 group-hover:opacity-60 transition-opacity">
+                          <span className="w-1 h-1 rounded-full bg-slate-700 block">&#1.83;</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2.5">
+                          <label 
+                              htmlFor={slider.variableName}
+                              className="text-xs text-cyan-400 font-orbitron font-medium tracking-wide cursor-help border-b border-dotted border-cyan-800/30"
+                              title={slider.description}
+                          >
+                              {slider.name}
+                          </label>
+                          <NumberInputWithSteppers
+                              value={currentVal}
+                              onChange={(newValue) => handleUniformChange(slider.variableName, newValue)}
+                              step={slider.step}
+                              min={slider.min}
+                              max={slider.max}
+                          />
+                      </div>
+                      <input
+                          type="range"
+                          id={slider.variableName}
+                          name={slider.variableName}
+                          min={slider.min}
+                          max={slider.max}
+                          step={slider.step}
+                          value={currentVal}
+                          onChange={(e) => handleUniformChange(slider.variableName, parseFloat(e.target.value))}
+                          onMouseUp={handleUniformsCommit}
+                          onTouchEnd={handleUniformsCommit}
+                          className="w-full bg-slate-900 rounded appearance-none cursor-pointer focus:outline-none accent-[#00f2ff] h-1.5 border border-cyan-950/60"
+                          style={{
+                              backgroundImage: 'linear-gradient(90deg, #10b981 0%, #00f2ff 100%)',
+                              backgroundSize: `${percent}% 100%`,
+                              backgroundRepeat: 'no-repeat'
+                          }}
+                      />
+                  </div>
+                );
+              })
           ) : (
-            <p className="text-gray-400 text-center py-8">No tweakable controls found.</p>
+            <p className="text-gray-500 text-center py-8 font-mono text-xs border border-dashed border-cyan-950/30 rounded">No tweakable virtual synthesizers mapped.</p>
           )}
       </div>
     );
@@ -182,11 +196,22 @@ const ToggleSwitch: React.FC<{
   onChange: (checked: boolean) => void;
   small?: boolean;
 }> = ({ label, description, checked, onChange, small = false }) => (
-    <label title={description} className={`flex items-center justify-between cursor-pointer ${small ? '' : 'p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/80 transition-colors'}`}>
-        <span className={`font-medium ${small ? 'text-xs text-gray-300' : 'text-sm text-gray-200'}`}>{label}</span>
-        <div className="relative">
+    <label title={description} className={`flex items-center justify-between cursor-pointer transition-all duration-150 ${small ? '' : 'p-3 bg-slate-950/65 border border-cyan-900/15 hover:border-cyan-500/25 rounded-md'}`}>
+        <span className={`font-orbitron tracking-wider ${small ? 'text-[10px] text-slate-400' : 'text-[11px] text-[#00f2ff] uppercase font-bold'}`}>{label}</span>
+        <div className="relative flex items-center">
             <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
-            <div className={`bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-offset-2 peer-focus:ring-offset-gray-800 peer-focus:ring-cyan-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:bg-white after:border-gray-300 after:border after:rounded-full after:transition-all peer-checked:bg-cyan-600 ${small ? 'w-9 h-5 after:top-[2px] after:left-[2px] after:h-4 after:w-4' : 'w-11 h-6 after:top-0.5 after:left-[2px] after:h-5 after:w-5'}`}></div>
+            <div className={`border border-cyan-900/40 bg-slate-900 rounded transition-all duration-200 flex items-center px-1
+                             peer-checked:border-[#00f2ff]/60 peer-checked:shadow-[0_0_10px_rgba(0,242,255,0.1)]
+                             ${small ? 'h-5 w-11' : 'h-6.5 w-13'}`}>
+                <div className={`rounded bg-slate-800 border border-slate-700 transition-all duration-200 flex items-center justify-center
+                                 ${small ? 'h-3.5 w-[18px]' : 'h-4.5 w-5'} 
+                                 ${checked 
+                                     ? 'translate-x-[16px] bg-cyan-950 border-[#00f2ff]/75 text-[#00f2ff]' 
+                                     : 'translate-x-0 text-slate-500'}`}
+                >
+                    <span className="text-[7px] font-bold select-none">{checked ? "ON" : "OFF"}</span>
+                </div>
+            </div>
         </div>
     </label>
 );
@@ -200,36 +225,49 @@ const ControlSlider: React.FC<{
   step?: number;
   onChange: (value: number) => void;
   mini?: boolean;
-}> = ({ label, description, value, min = 0, max = 3, step = 0.05, onChange, mini = false }) => (
-    <div className={mini ? '' : "p-3 bg-gray-800/50 rounded-lg"}>
-        <div className="flex justify-between items-center mb-2">
-            <label
-                htmlFor={`control-slider-${label}`}
-                className={`${mini ? 'text-xs' : 'text-sm'} text-gray-300 cursor-help border-b border-dotted border-gray-500/50`}
-                title={description}
-            >
-                {label}
-            </label>
-            <NumberInputWithSteppers
-                value={value}
-                onChange={onChange}
-                step={step}
+}> = ({ label, description, value, min = 0, max = 3, step = 0.05, onChange, mini = false }) => {
+    const percent = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+    return (
+        <div className={mini ? '' : "p-3.5 bg-slate-950/65 border border-cyan-900/20 hover:border-cyan-500/30 rounded-md transition-all relative group"}>
+            {!mini && (
+                <div className="absolute top-1 right-1 flex gap-0.5 opacity-25 group-hover:opacity-60 transition-opacity">
+                    <span className="w-1 h-1 rounded-full bg-slate-700 block">&#1.83;</span>
+                </div>
+            )}
+            <div className="flex justify-between items-center mb-2">
+                <label
+                    htmlFor={`control-slider-${label}`}
+                    className={`${mini ? 'text-[11px]' : 'text-xs'} text-cyan-400 font-orbitron font-medium tracking-wide cursor-help border-b border-dotted border-cyan-800/30`}
+                    title={description}
+                >
+                    {label}
+                </label>
+                <NumberInputWithSteppers
+                    value={value}
+                    onChange={onChange}
+                    step={step}
+                    min={min}
+                    max={max}
+                />
+            </div>
+            <input
+                type="range"
+                id={`control-slider-${label}`}
                 min={min}
                 max={max}
+                step={step}
+                value={value}
+                onChange={(e) => onChange(parseFloat(e.target.value))}
+                className={`w-full bg-slate-900 rounded appearance-none cursor-pointer focus:outline-none accent-[#00f2ff] border border-cyan-950/60 ${mini ? 'h-1' : 'h-1.5'}`}
+                style={{
+                    backgroundImage: 'linear-gradient(90deg, #10b981 0%, #00f2ff 100%)',
+                    backgroundSize: `${percent}% 100%`,
+                    backgroundRepeat: 'no-repeat'
+                }}
             />
         </div>
-        <input
-            type="range"
-            id={`control-slider-${label}`}
-            min={min}
-            max={max}
-            step={step}
-            value={value}
-            onChange={(e) => onChange(parseFloat(e.target.value))}
-            className={`w-full bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 ${mini ? 'h-1.5' : 'h-2'}`}
-        />
-    </div>
-);
+    );
+};
 
 const ModulationRow: React.FC<{
     mod: Modulation;
@@ -764,8 +802,70 @@ const ControlsConfigPanel: React.FC = () => {
         { key: 'yawVelocity', label: 'Look L/R Speed', description: 'Controls speed of Left/Right arrow keys.' },
     ];
 
+    const gestureMode = controlConfig.gestureMode || 'touch';
+
     return (
         <div className="space-y-4">
+            {/* Gestural Control Deck */}
+            <div className="p-4 bg-slate-950/75 border border-cyan-500/20 rounded-md space-y-3 shadow-[0_0_15px_rgba(0,242,255,0.03)]">
+                <div className="flex items-center justify-between border-b border-cyan-500/10 pb-2">
+                    <h3 className="text-xs font-bold text-gray-200 uppercase font-orbitron tracking-widest flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
+                        Gesture Flight deck
+                    </h3>
+                </div>
+
+                <ToggleSwitch
+                    label="Enable Gesture Pilots"
+                    description="Activate hands-free / touchscreen gesture flight navigation."
+                    checked={!!controlConfig.enableGestureControls}
+                    onChange={(checked) => handleControlConfigChange('enableGestureControls', checked)}
+                />
+
+                {controlConfig.enableGestureControls && (
+                  <div className="space-y-3 pt-2">
+                      {/* Gestural Steering Mode Selection */}
+                      <div className="space-y-1.5">
+                          <label className="text-[10px] font-orbitron text-cyan-500 font-bold uppercase tracking-wider block">Targeting Matrix Mode</label>
+                          <div className="grid grid-cols-3 gap-1 bg-slate-900 border border-cyan-950 p-0.5 rounded">
+                              {(['touch', 'tilt', 'webcam'] as const).map(m => (
+                                  <button
+                                      key={m}
+                                      onClick={() => handleControlConfigChange('gestureMode', m)}
+                                      className={`py-1.5 rounded text-[10px] uppercase font-bold tracking-widest transition-all ${gestureMode === m ? 'bg-cyan-500/25 text-white border border-[#00f2ff]/30 font-extrabold shadow-[0_0_8px_rgba(0,242,255,0.15)]' : 'text-slate-500 border border-transparent hover:text-slate-300'}`}
+                                  >
+                                      {m}
+                                  </button>
+                              ))}
+                          </div>
+                      </div>
+
+                      {/* Gestural Motion Description Panel */}
+                      <div className="bg-[#000d14]/70 border border-cyan-500/10 p-2.5 rounded text-[10px] font-mono text-cyan-200/80 leading-relaxed uppercase select-none">
+                          {gestureMode === 'touch' && (
+                            <span>Dual visual joystick touchpads will draw directly on screen. Direct pointer/finger drags mapped to real-time thrust vectors and attitude steering matrix.</span>
+                          )}
+                          {gestureMode === 'tilt' && (
+                            <span>Hardware dynamic Gyroscope calibration. Comfortably tilt your phone up/down and left/right to steer the spaceship.</span>
+                          )}
+                          {gestureMode === 'webcam' && (
+                            <span>Client-side AI motion capture camera matrix. Wave your hands/move in cockpit sectors (L, R, U, D) to steer. Zero cloud latency.</span>
+                          )}
+                      </div>
+
+                      <ControlSlider
+                          label="Gesture Sensitivity"
+                          description="Fine-tune translation and steering rotational speeds from gestural input."
+                          value={controlConfig.gestureSensitivity ?? 1.0}
+                          min={0.1}
+                          max={3.0}
+                          step={0.1}
+                          onChange={(v) => handleControlConfigChange('gestureSensitivity', v)}
+                      />
+                  </div>
+                )}
+            </div>
+
             <div>
                 <h3 className="text-sm font-semibold text-gray-400 px-1 mb-2">Inversions</h3>
                 <div className="space-y-2">
@@ -1085,6 +1185,185 @@ const CollisionPanel: React.FC = () => {
 };
 
 
+const LandmarksPanel: React.FC = () => {
+    const { 
+        landmarks, 
+        activeLandmarkId, 
+        setActiveLandmarkId, 
+        isWarping, 
+        handleTriggerWarp, 
+        handleSaveLandmark, 
+        handleDeleteLandmark,
+        cameraRef
+    } = useAppContext();
+
+    const [newName, setNewName] = useState('');
+    const [newDesc, setNewDesc] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const activeLandmarks = landmarks; 
+    const currentCoords = cameraRef?.current ? cameraRef.current.position : [0, 0, 0];
+
+    const onAdd = (e: React.FormEvent) => {
+        e.preventDefault();
+        handleSaveLandmark(newName.trim(), newDesc.trim());
+        setNewName('');
+        setNewDesc('');
+        setIsSaving(false);
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-start gap-3 p-3 bg-cyan-950/20 border border-cyan-800/30 rounded-lg">
+                <SparklesIcon className="w-8 h-8 text-cyan-400 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-cyan-400 space-y-1">
+                    <p className="font-semibold uppercase tracking-wider font-orbitron">Navigation Telemeters</p>
+                    <p className="text-slate-400 leading-relaxed font-mono">
+                        Register current coordinates as a permanent waypoint or warp directly to predefined nodes.
+                    </p>
+                </div>
+            </div>
+
+            {/* Save Current Position Card */}
+            {!isSaving ? (
+                <button 
+                    onClick={() => setIsSaving(true)}
+                    className="w-full py-3 px-4 bg-cyan-950/40 border border-cyan-800/40 rounded-lg font-orbitron text-[10px] text-cyan-400 font-bold uppercase tracking-widest hover:bg-[#00f2ff]/10 hover:text-white hover:border-[#00f2ff]/60 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,242,255,0.05)]"
+                >
+                    + Register Current Waypoint
+                </button>
+            ) : (
+                <form onSubmit={onAdd} className="bg-slate-950/80 border border-cyan-900/40 p-4 rounded-lg space-y-3 shadow-inner">
+                    <div className="flex justify-between items-center pb-2 border-b border-cyan-950">
+                        <span className="text-[10px] font-bold text-[#00f2ff] uppercase font-orbitron tracking-widest">Waypoint Registration</span>
+                        <button type="button" onClick={() => setIsSaving(false)} className="text-[10px] text-slate-500 hover:text-slate-300 uppercase font-mono">Cancel</button>
+                    </div>
+                    
+                    <div className="text-[10px] font-mono text-cyan-600 space-y-1 py-1">
+                        <div>LOC X: <span className="text-cyan-400">{currentCoords[0].toFixed(3)}</span></div>
+                        <div>LOC Y: <span className="text-cyan-400">{currentCoords[1].toFixed(3)}</span></div>
+                        <div>LOC Z: <span className="text-cyan-400">{currentCoords[2].toFixed(3)}</span></div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="block text-[10px] font-mono text-cyan-500 uppercase">Telemeter Name</label>
+                        <input
+                            type="text"
+                            required
+                            placeholder="e.g. Spiral Abyss"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-900/90 border border-cyan-900/40 rounded text-xs text-white placeholder-slate-600 focus:border-[#00f2ff]/75 outline-none font-mono"
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="block text-[10px] font-mono text-cyan-500 uppercase">Telemeter Core Log</label>
+                        <input
+                            type="text"
+                            placeholder="e.g. Deep recursive fissure..."
+                            value={newDesc}
+                            onChange={(e) => setNewDesc(e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-900/90 border border-cyan-900/40 rounded text-xs text-white placeholder-slate-600 focus:border-[#00f2ff]/75 outline-none font-mono"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full py-2.5 bg-gradient-to-r from-emerald-950 to-cyan-950 border border-cyan-500/50 hover:border-cyan-400 rounded font-orbitron font-bold text-[10px] text-[#00f2ff] uppercase tracking-widest cursor-pointer shadow-md hover:shadow-cyan-950"
+                    >
+                        Initialize Coordinate Lock
+                    </button>
+                </form>
+            )}
+
+            {/* Landmarks List */}
+            <div className="space-y-2.5">
+                <h4 className="text-[10px] font-bold text-cyan-500/70 uppercase tracking-widest font-orbitron flex items-center justify-between">
+                    <span>Registered Waypoints</span>
+                    <span className="font-mono text-[9px]">{activeLandmarks.length} Total</span>
+                </h4>
+
+                <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                    {activeLandmarks.map((landmark) => {
+                        const isActive = activeLandmarkId === landmark.id;
+                        const dist = cameraRef?.current ? Math.sqrt(
+                            Math.pow(landmark.position[0] - cameraRef.current.position[0], 2) +
+                            Math.pow(landmark.position[1] - cameraRef.current.position[1], 2) +
+                            Math.pow(landmark.position[2] - cameraRef.current.position[2], 2)
+                        ) : 0;
+
+                        return (
+                            <div 
+                                key={landmark.id} 
+                                className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden group
+                                            ${isActive 
+                                              ? 'bg-cyan-950/25 border-cyan-500/50 shadow-[0_0_15px_rgba(0,242,255,0.08)]' 
+                                              : 'bg-slate-950/60 border-cyan-950 hover:border-cyan-700/45 hover:bg-slate-900/40'}`}
+                            >
+                                {isActive && <div className="absolute top-0 bottom-0 left-0 w-1 bg-[#00f2ff]" />}
+
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h5 className="text-[12px] font-orbitron font-semibold text-white tracking-wide uppercase flex items-center gap-1.5">
+                                            {landmark.name}
+                                            {landmark.isCustom && (
+                                                <span className="text-[8px] px-1.5 py-0.2 bg-purple-950/80 border border-purple-500/40 text-purple-300 rounded uppercase font-mono tracking-normal scale-90">Custom</span>
+                                            )}
+                                        </h5>
+                                        <p className="text-[11px] text-slate-400 font-mono mt-1 leading-relaxed">{landmark.description}</p>
+                                    </div>
+
+                                    {!landmark.isCustom ? (
+                                        <span className="text-[8px] border border-cyan-900 px-1.5 py-0.5 rounded font-mono text-cyan-600 bg-slate-950 select-none">PRESET</span>
+                                    ) : (
+                                        <button 
+                                            onClick={() => handleDeleteLandmark(landmark.id)}
+                                            className="text-slate-600 hover:text-rose-400 p-1.5 rounded transition-colors cursor-pointer"
+                                            title="Delete waypoint"
+                                        >
+                                            <XCircleIcon className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between pt-3 mt-2 border-t border-cyan-950/55 text-[10px] font-mono">
+                                    <div className="text-cyan-700 font-mono text-[9px] flex gap-2">
+                                        <span>DIST: <strong className="text-cyan-400">{dist.toFixed(1)}m</strong></span>
+                                        <span className="text-slate-600">|</span>
+                                        <span>XYZ: <strong className="text-cyan-500">{landmark.position.map(n => Math.round(n)).join(',')}</strong></span>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setActiveLandmarkId(isActive ? null : landmark.id)}
+                                            className={`px-2.5 py-1 rounded font-orbitron uppercase text-[9px] font-bold tracking-widest transition-all cursor-pointer
+                                                        ${isActive 
+                                                          ? 'bg-cyan-900/35 text-[#00f2ff] border border-[#00f2ff]/40 hover:bg-[#00f2ff]/20' 
+                                                          : 'bg-transparent border border-cyan-900/60 text-cyan-600 hover:text-cyan-400 hover:border-cyan-700/50'}`}
+                                        >
+                                            {isActive ? 'TRACKING ON' : 'TRACK WAYPOINT'}
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleTriggerWarp(landmark)}
+                                            disabled={isWarping}
+                                            className="px-3.5 py-1 bg-[#00f2ff] hover:bg-cyan-300 text-slate-950 font-orbitron font-bold uppercase rounded text-[9px] tracking-widest shadow-[0_0_10px_rgba(0,242,255,0.25)] hover:shadow-[0_0_15px_rgba(0,242,255,0.45)] transition-all cursor-pointer disabled:opacity-30 disabled:pointer-events-none"
+                                        >
+                                            {isWarping ? 'WARPING...' : 'HYPERJUMP'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 export const ControlsPanel: React.FC = () => {
   const { 
     isControlsOpen, 
@@ -1095,9 +1374,18 @@ export const ControlsPanel: React.FC = () => {
     fileInputRef,
     handleSaveSessionToFile,
     setIsInteracting,
-    getSessionStateJson
+    getSessionStateJson,
+    landmarks,
+    activeLandmarkId,
+    setActiveLandmarkId,
+    isWarping,
+    warpTargetName,
+    warpProgress,
+    handleTriggerWarp,
+    handleSaveLandmark,
+    handleDeleteLandmark
   } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'sliders' | 'terraform' | 'controls' | 'settings' | 'sound' | 'collision' | 'ship'>('sliders');
+  const [activeTab, setActiveTab] = useState<'sliders' | 'terraform' | 'controls' | 'settings' | 'sound' | 'collision' | 'ship' | 'landmarks'>('sliders');
   const [sourceAuthor, setSourceAuthor] = useState<string | null>(null);
 
   // State for dragging functionality
@@ -1236,9 +1524,9 @@ export const ControlsPanel: React.FC = () => {
       
       {/* Modal panel */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 glass-panel border-t border-cyan-800/30 rounded-t-xl shadow-2xl
-                   sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:rounded-xl sm:border sm:w-auto
-                   flex flex-col max-h-[70vh]"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-[#061014]/98 border-t-2 border-t-cyan-500/50 shadow-[0_0_30px_rgba(0,242,255,0.2)] rounded-t-xl
+                   sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:rounded-xl sm:border sm:border-cyan-500/30
+                   flex flex-col max-h-[70vh] font-sans overflow-hidden"
         style={{
             // On small screens, CSS classes handle the fixed bottom position.
             // On larger screens, this style is used to enable dragging and resizing.
@@ -1260,10 +1548,10 @@ export const ControlsPanel: React.FC = () => {
         {/* Drag Handle for Desktop */}
         <div
             onPointerDown={handlePointerDown}
-            className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 pt-2 rounded-b-lg cursor-grab"
+            className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 pt-2 rounded-b-lg cursor-grab z-10"
             title="Drag to move"
         >
-            <div className="w-10 h-1 bg-gray-500/50 rounded-full mx-auto" />
+            <div className="w-10 h-1 bg-cyan-500/35 rounded-full mx-auto hover:bg-[#00f2ff] transition-colors" />
         </div>
 
         {/* Resize Handle */}
@@ -1272,24 +1560,25 @@ export const ControlsPanel: React.FC = () => {
             className="hidden sm:flex absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize z-50 items-end justify-end pb-1 pr-1"
             title="Drag to resize"
         >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="pointer-events-none opacity-50 text-gray-400">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="pointer-events-none opacity-50 text-[#00f2ff]">
                 <path d="M11 15L15 11M7 15L15 7M3 15L15 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
         </div>
 
         {/* Header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-4 pt-4 pb-2 border-b border-cyan-800/20 bg-slate-950/20">
-          <h2 id="controls-heading" className="text-sm font-bold text-white flex items-center gap-2">
-              <AdjustmentsIcon className="w-5 h-5 text-cyan-400" />
-              <span className="font-orbitron tracking-widest text-[#00f2ff] uppercase">Aetherium Pilot Controller</span>
-              <span className="text-[10px] font-normal text-slate-500 font-sans tracking-wide ml-1">
-                  by <a href="https://x.com/pitaru" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">@pitaru</a>
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b-2 border-cyan-500/30 bg-[#0c1e24] relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-[#00f2ff]" />
+          <h2 id="controls-heading" className="text-sm font-bold text-white flex items-center gap-2 ml-1.5">
+              <AdjustmentsIcon className="w-5 h-5 text-[#00f2ff] animate-pulse" />
+              <span className="font-orbitron tracking-widest text-[#00f2ff] uppercase text-xs">Aetherium Pilot Controller</span>
+              <span className="text-[9px] font-mono text-cyan-600 uppercase tracking-wider ml-2 hidden sm:inline-block">
+                  [SYS_VER: 80.8]
               </span>
           </h2>
           <div className="flex items-center gap-3">
             <button 
                 onClick={() => setIsControlsOpen(false)}
-                className="text-cyan-400 hover:text-white transition-colors p-1 rounded-full hover:bg-cyan-500/10"
+                className="text-cyan-400 hover:text-white transition-colors p-1 rounded-full hover:bg-cyan-500/10 cursor-pointer"
                 aria-label="Close controls"
             >
                 <XCircleIcon className="w-5 h-5" />
@@ -1298,10 +1587,11 @@ export const ControlsPanel: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex-shrink-0 flex overflow-x-auto px-4 pt-1.5 gap-1 border-b border-cyan-800/20 bg-slate-950/10 no-scrollbar">
+        <div className="flex-shrink-0 flex overflow-x-auto bg-slate-950/90 border-b border-cyan-900/30 no-scrollbar">
             <TabButton label="World" isActive={activeTab === 'sliders'} onClick={() => setActiveTab('sliders')} />
             {cameraControlsEnabled && <TabButton label="Ship" isActive={activeTab === 'ship'} onClick={() => setActiveTab('ship')} />}
             <TabButton label="Sound" isActive={activeTab === 'sound'} onClick={() => setActiveTab('sound')} />
+            {cameraControlsEnabled && <TabButton label="Landmarks" isActive={activeTab === 'landmarks'} onClick={() => setActiveTab('landmarks')} />}
             
             {EDITMODE && (
                 <>
@@ -1318,6 +1608,7 @@ export const ControlsPanel: React.FC = () => {
             {activeTab === 'sliders' && <SlidersPanel />}
             {activeTab === 'ship' && <ShipConfigPanel />}
             {activeTab === 'sound' && <SoundPanel />}
+            {activeTab === 'landmarks' && <LandmarksPanel />}
             {activeTab === 'terraform' && <TerraformPanel />}
             {activeTab === 'collision' && <CollisionPanel />}
             {activeTab === 'controls' && <ControlsConfigPanel />}

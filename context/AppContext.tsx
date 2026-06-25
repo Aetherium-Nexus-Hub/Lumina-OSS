@@ -7,7 +7,7 @@
 
 
 import React, { createContext, useContext, RefObject, MutableRefObject } from 'react';
-import { Slider, AiStage, SliderSuggestion, TerraformConfig, TerraformTarget, ControlConfig, SoundConfig, Modulation, CameraData, ViewMode, ShipConfig, ShipModulation } from '../types';
+import { Slider, AiStage, SliderSuggestion, TerraformConfig, TerraformTarget, ControlConfig, SoundConfig, Modulation, CameraData, ViewMode, ShipConfig, ShipModulation, Landmark } from '../types';
 
 // Define the shape of the context's value
 export interface AppContextType {
@@ -155,6 +155,17 @@ export interface AppContextType {
   updateShipModulation: (id: string, newConfig: Partial<ShipModulation>) => void;
   removeShipModulation: (id: string) => void;
   audioInputsRef: MutableRefObject<Record<string, number>>;
+
+  // Landmarks & Waypoints State
+  landmarks: Landmark[];
+  activeLandmarkId: string | null;
+  setActiveLandmarkId: (id: string | null) => void;
+  isWarping: boolean;
+  warpTargetName: string;
+  warpProgress: number;
+  handleTriggerWarp: (landmark: Landmark) => void;
+  handleSaveLandmark: (name: string, description: string) => void;
+  handleDeleteLandmark: (id: string) => void;
 }
 
 

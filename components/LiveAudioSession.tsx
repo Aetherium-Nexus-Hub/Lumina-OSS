@@ -23,6 +23,11 @@ export const LiveAudioSession = () => {
     setIsConnecting(true);
     setError(null);
     try {
+      // API Key Safeguard Check
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY is not defined. Please verify the environment configuration in the Settings menu.");
+      }
+
       // 1. Setup Audio Context
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       
@@ -192,47 +197,47 @@ export const LiveAudioSession = () => {
 
   return (
     <div className="flex-1 flex items-center justify-center flex-col gap-6 p-6">
-      <div className={`w-32 h-32 rounded-full flex items-center justify-center transition-all ${
+      <div className={`w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 ${
         isConnected 
-          ? 'bg-green-500/10 border-4 border-green-500/30 animate-pulse' 
+          ? 'bg-emerald-500/10 border-4 border-emerald-500/30 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.3)]' 
           : isConnecting
-            ? 'bg-yellow-500/10 border-4 border-yellow-500/30 animate-pulse'
-            : 'bg-blue-500/10 border-4 border-blue-500/30'
+            ? 'bg-yellow-500/10 border-4 border-yellow-500/30 animate-pulse shadow-[0_0_20px_rgba(234,179,8,0.2)]'
+            : 'bg-cyan-500/15 border-4 border-cyan-500/30 shadow-[0_0_25px_rgba(0,242,255,0.25)]'
       }`}>
         {isConnecting ? (
           <Loader2 className="w-12 h-12 text-yellow-400 animate-spin" />
         ) : isConnected ? (
-          <Mic className="w-12 h-12 text-green-400" />
+          <Mic className="w-12 h-12 text-emerald-400" />
         ) : (
-          <MicOff className="w-12 h-12 text-blue-400" />
+          <MicOff className="w-12 h-12 text-cyan-400" />
         )}
       </div>
       
-      <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Live Audio Session</h2>
-        <p className="text-slate-400 max-w-md mx-auto">
+      <div className="text-center font-sans">
+        <h2 className="text-xl font-bold mb-1 font-orbitron text-[#00f2ff] tracking-widest uppercase">CO-PILOT AI COMMS</h2>
+        <p className="text-xs text-slate-400 max-w-sm mx-auto tracking-wide leading-relaxed font-medium">
           {isConnected 
-            ? "Connected! Start speaking to interact with Gemini." 
+            ? "Intercom Active! Speak naturally to direct the Ship's Core systems." 
             : isConnecting 
-              ? "Connecting to Gemini Live..." 
-              : "Connect to Gemini 2.5 Native Audio for real-time conversational interactions."}
+              ? "Establishing quantum secure comm-link..." 
+              : "Connect with the Gemini 2.5 Live co-pilot module for real-time conversational commands."}
         </p>
-        {error && <p className="text-red-400 mt-2">{error}</p>}
+        {error && <p className="text-rose-400 text-xs mt-3 font-mono bg-rose-950/20 border border-rose-900/40 p-2 rounded max-w-sm mx-auto">{error}</p>}
       </div>
 
       {!isConnected && !isConnecting ? (
         <button 
           onClick={startSession}
-          className="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-full font-bold text-lg shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-cyan-500/15 hover:bg-cyan-500/35 border border-cyan-400/40 text-cyan-400 font-orbitron font-bold text-xs tracking-widest rounded-md shadow-[0_0_10px_rgba(0,242,255,0.15)] hover:shadow-[0_0_20px_rgba(0,242,255,0.25)] transition-all duration-300 flex items-center gap-2 uppercase cursor-pointer"
         >
-          <Mic className="w-5 h-5" /> Start Conversation
+          <Mic className="w-4 h-4 text-cyan-400" /> ENGAGE COMMS
         </button>
       ) : (
         <button 
           onClick={stopSession}
-          className="px-8 py-4 bg-red-600 hover:bg-red-700 rounded-full font-bold text-lg shadow-lg shadow-red-500/20 transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-rose-500/15 hover:bg-rose-500/35 border border-rose-400/45 text-rose-400 font-orbitron font-bold text-xs tracking-widest rounded-md shadow-[0_0_10px_rgba(244,63,94,0.15)] hover:shadow-[0_0_20px_rgba(244,63,94,0.25)] transition-all duration-300 flex items-center gap-2 uppercase cursor-pointer"
         >
-          <Square className="w-5 h-5 fill-current" /> End Conversation
+          <Square className="w-4 h-4 fill-current text-rose-400" /> DISENGAGE COMMS
         </button>
       )}
     </div>

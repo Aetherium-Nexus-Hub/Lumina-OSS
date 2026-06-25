@@ -9,6 +9,7 @@ import { Hud } from './components/Hud';
 import { ControlsPanel } from './components/ControlsPanel';
 import { NewSessionModal } from './components/NewSessionModal';
 import { DpadControls } from './components/DpadControls';
+import { GestureControls } from './components/GestureControls';
 
 const App = () => {
   const store = useAppStoreComplete();
@@ -24,6 +25,7 @@ const App = () => {
              <ShipOverlay />
              <Hud />
              <DpadControls />
+             <GestureControls />
           </div>
           
           <EditorPanel />

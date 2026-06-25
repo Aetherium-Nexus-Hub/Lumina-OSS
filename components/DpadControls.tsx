@@ -47,7 +47,7 @@ const DpadButton: React.FC<{
     <div
       role="button"
       aria-label={ariaLabel}
-      className={`w-10 h-10 sm:w-14 sm:h-14 bg-gray-500/30 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-white transition-transform duration-100 ease-in-out select-none touch-none ${className} ${isVisuallyPressed ? 'bg-white/40 scale-90' : ''}`}
+      className={`w-10 h-10 sm:w-14 sm:h-14 bg-slate-950/75 backdrop-blur-md border border-cyan-500/30 rounded-full flex items-center justify-center text-cyan-400 shadow-[0_0_12px_rgba(0,242,255,0.06)] active:shadow-[0_0_20px_#00f2ff] transition-all duration-100 ease-in-out select-none touch-none cursor-pointer ${className} ${isVisuallyPressed ? 'bg-cyan-500/25 border-[#00f2ff] text-white scale-90 shadow-[0_0_15px_rgba(0,242,255,0.4)]' : 'hover:border-cyan-400 hover:text-[#00f2ff]'}`}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUpOrCancel}
       onPointerCancel={handlePointerUpOrCancel}
@@ -92,15 +92,15 @@ const TerraformButton: React.FC<{
   const isDepleted = power <= 0.01;
   const fillHeight = `${Math.min(1, power) * 100}%`;
 
-  const fillColor = isFull ? 'bg-cyan-400/50' : 'bg-white/40';
-  const iconColor = isFull ? 'text-cyan-300' : 'text-white';
+  const fillColor = isFull ? 'bg-amber-500/40 shadow-[inset_0_0_12px_rgba(255,204,0,0.4)]' : 'bg-cyan-400/30';
+  const iconColor = isFull ? 'text-amber-400 filter drop-shadow-[0_0_8px_rgba(255,204,0,0.8)]' : 'text-cyan-400';
 
   return (
     <div
       role="button"
       aria-label="Terraform Fractal"
       title="Terraform"
-      className={`w-16 h-16 sm:w-20 sm:h-20 bg-gray-500/30 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center text-white transition-all duration-150 ease-in-out select-none touch-none transform relative overflow-hidden ${isPointerPressed ? 'scale-95' : ''} ${isDepleted && !isPointerPressed ? 'opacity-70' : ''}`}
+      className={`w-16 h-16 sm:w-20 sm:h-20 bg-slate-950/85 backdrop-blur-md border-2 border-cyan-500/35 rounded-full flex items-center justify-center transition-all duration-150 ease-in-out select-none touch-none transform relative overflow-hidden cursor-pointer shadow-[0_0_15px_rgba(0,242,255,0.1)] ${isPointerPressed ? 'scale-95 shadow-[0_0_20px_#00f2ff]' : 'hover:border-cyan-400'} ${isDepleted && !isPointerPressed ? 'opacity-70' : ''}`}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUpOrCancel}
       onPointerCancel={handlePointerUpOrCancel}

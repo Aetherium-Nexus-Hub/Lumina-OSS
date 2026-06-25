@@ -5,7 +5,7 @@
 
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { AiStage, type Slider, type TerraformConfig, TerraformTarget, ControlConfig, SoundConfig, Modulation, ModulationSource, ModulationTarget, CameraData, ViewMode, ShipConfig, ShipModulation, ShipModulationTarget } from '../types';
+import { AiStage, type Slider, type TerraformConfig, TerraformTarget, ControlConfig, SoundConfig, Modulation, ModulationSource, ModulationTarget, CameraData, ViewMode, ShipConfig, ShipModulation, ShipModulationTarget, Landmark } from '../types';
 import { AppContextType } from '../context/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import { EDITMODE } from '../config';
@@ -248,9 +248,90 @@ const INITIAL_CAMERA_POS: [number, number, number] = [0, -1.49, 0];
 // Start with a level camera view, compensated for FLIGHT_PITCH_OFFSET
 const INITIAL_CAMERA_ROT: [number, number] = [0.1, 0.0];
 
+const PREDEFINED_LANDMARKS: Landmark[] = [
+  {
+    id: 'pre-spires',
+    name: 'Fractal Spires',
+    description: 'A cluster of towering geometric spires rising from the silicon sea.',
+    position: [0.0, -1.49, 45.0],
+    rotation: [0.1, 0.0],
+    sessionId: '1'
+  },
+  {
+    id: 'pre-void',
+    name: 'The Hypercube Void',
+    description: 'An elevated observation point overlooking a chaotic recursive rift.',
+    position: [25.0, 15.0, 105.0],
+    rotation: [-0.3, 0.8],
+    sessionId: '1'
+  },
+  {
+    id: 'pre-basin',
+    name: 'Silicon Valley Basin',
+    description: 'A deep tectonic canyon where fractal micro-structures converge.',
+    position: [-45.0, -0.5, -60.0],
+    rotation: [0.02, -1.2],
+    sessionId: '1'
+  },
+  {
+    id: 'pre-monolith',
+    name: 'The Monolith Anomaly',
+    description: 'An imposing rectangular structure floating silently above the coordinate lines.',
+    position: [35.0, 6.0, -95.0],
+    rotation: [0.18, 3.14],
+    sessionId: '1'
+  },
+  {
+    id: 'pre-archway',
+    name: 'Aetherium Archway',
+    description: 'A massive natural corridor bridge composed of repeating cubic iterations.',
+    position: [-20.0, 4.0, 85.0],
+    rotation: [-0.15, 2.3],
+    sessionId: '1'
+  }
+];
+
 export const useAppStore = (): Omit<AppContextType, keyof ReturnType<typeof useDummyHandlers>> => {
   const [error, setError] = useState<string | null>(null);
   const handleShaderError = useCallback((error: string) => setError(error), []);
+
+  // --- Landmarks & Waypoints State ---
+  const [landmarks, setLandmarks] = useState<Landmark[]>(() => {
+      try {
+          const stored = localStorage.getItem('shader_pilot_landmarks');
+          if (stored) {
+              const parsed = JSON.parse(stored);
+              return [...PREDEFINED_LANDMARKS, ...parsed];
+          }
+      } catch (e) {
+          console.error("Error reading landmarks from localStorage", e);
+      }
+      return [...PREDEFINED_LANDMARKS];
+  });
+
+  const [activeLandmarkId, setActiveLandmarkId] = useState<string | null>(null);
+  
+  const [isWarping, setIsWarping] = useState<boolean>(false);
+  const [warpTargetName, setWarpTargetName] = useState<string>('');
+  const [warpProgress, setWarpProgress] = useState<number>(0);
+
+  const warpRef = useRef<{
+      active: boolean;
+      progress: number;
+      startPos: [number, number, number];
+      startRot: [number, number];
+      targetPos: [number, number, number];
+      targetRot: [number, number];
+      targetName: string;
+  }>({
+      active: false,
+      progress: 0,
+      startPos: [0, 0, 0],
+      startRot: [0, 0],
+      targetPos: [0, 0, 0],
+      targetRot: [0, 0],
+      targetName: ''
+  });
 
   const [activeShaderCode, setActiveShaderCode] = useState<string>('');
   const [sliders, setSliders] = useState<Slider[]>([]);
@@ -1119,6 +1200,67 @@ export const useAppStore = (): Omit<AppContextType, keyof ReturnType<typeof useD
        }));
    }, []);
 
+   const handleTriggerWarp = useCallback((landmark: Landmark) => {
+       if (!cameraControlsEnabled) {
+           setCameraControlsEnabled(true);
+       }
+
+       // Setup warp ref values
+       warpRef.current = {
+           active: true,
+           progress: 0,
+           startPos: [...cameraRef.current.position] as [number, number, number],
+           startRot: [...cameraRef.current.rotation] as [number, number],
+           targetPos: [...landmark.position] as [number, number, number],
+           targetRot: [...landmark.rotation] as [number, number],
+           targetName: landmark.name
+       };
+
+       setWarpTargetName(landmark.name);
+       setIsWarping(true);
+       setWarpProgress(0);
+       setActiveLandmarkId(landmark.id);
+   }, [cameraControlsEnabled]);
+
+   const handleSaveLandmark = useCallback((name: string, description: string) => {
+       const newLandmark: Landmark = {
+           id: uuidv4(),
+           name: name || `Waypoint ${landmarks.filter(l => l.isCustom).length + 1}`,
+           description: description || 'Custom navigation waypoint.',
+           position: [...cameraRef.current.position] as [number, number, number],
+           rotation: [...cameraRef.current.rotation] as [number, number],
+           sessionId: currentSessionIdRef.current || '1',
+           isCustom: true
+       };
+
+       setLandmarks(prev => {
+           const customOnly = prev.filter(l => l.isCustom);
+           const updatedCustom = [...customOnly, newLandmark];
+           try {
+               localStorage.setItem('shader_pilot_landmarks', JSON.stringify(updatedCustom));
+           } catch (e) {
+               console.error("Failed to persist custom landmark", e);
+           }
+           return [...PREDEFINED_LANDMARKS, ...updatedCustom];
+       });
+   }, [landmarks]);
+
+   const handleDeleteLandmark = useCallback((id: string) => {
+       setLandmarks(prev => {
+           const filtered = prev.filter(l => l.id !== id);
+           const customOnly = filtered.filter(l => l.isCustom);
+           try {
+               localStorage.setItem('shader_pilot_landmarks', JSON.stringify(customOnly));
+           } catch (e) {
+               console.error("Failed to update stored landmarks", e);
+           }
+           return [...PREDEFINED_LANDMARKS, ...customOnly];
+       });
+       if (activeLandmarkId === id) {
+           setActiveLandmarkId(null);
+       }
+   }, [activeLandmarkId]);
+
   useEffect(() => {
     if (currentSessionId !== '1' || !soundConfig.enabled) cleanupAudio();
   }, [soundConfig.enabled, currentSessionId, cleanupAudio]);
@@ -1161,113 +1303,135 @@ export const useAppStore = (): Omit<AppContextType, keyof ReturnType<typeof useD
         const currentUniforms = uniformsRef.current;
         const sessionId = currentSessionIdRef.current;
 
-        // --- Physics & Camera ---
-        const keys = keysPressed.current;
-        let fwd = (keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0);
-        if (controls.invertForward) fwd = -fwd;
-        let str = (keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0);
-        if (controls.invertStrafe) str = -str;
-        let asc = (keys.has(' ') ? 1 : 0) - (keys.has('shift') ? 1 : 0);
-        if (controls.invertAscend) asc = -asc;
-        
-        let pitchInput = (keys.has('arrowdown') ? 1 : 0) - (keys.has('arrowup') ? 1 : 0);
-        if (controls.invertPitch) pitchInput = -pitchInput;
-        let yawInput = (keys.has('arrowright') ? 1 : 0) - (keys.has('arrowleft') ? 1 : 0);
-        if (controls.invertYaw) yawInput = -yawInput;
-
-        const [p, y] = cameraRef.current.rotation;
-        const currentPos = cameraRef.current.position;
-        const spd = 1.0;
-        const rotSpd = 1.0;
-
-        // Flight Pitch Offset: Allows flying level while looking slightly down (nose-down attitude)
-        // This sets the "neutral" joystick position to be slightly pitched down relative to the camera view
-        const FLIGHT_PITCH_OFFSET = 0.1;
-
-        // BUG FIX: Vertical movement was inverted. 
-        // If p > 0 is looking DOWN, we want NEGATIVE Y when moving forward.
-        // Applied offset so p=FLIGHT_PITCH_OFFSET results in level flight (dirY=0)
-        const dirX = Math.sin(y) * Math.cos(p - FLIGHT_PITCH_OFFSET);
-        const dirY = -Math.sin(p - FLIGHT_PITCH_OFFSET);
-        const dirZ = Math.cos(y) * Math.cos(p - FLIGHT_PITCH_OFFSET);
-        const rightX = Math.cos(y);
-        const rightZ = -Math.sin(y);
-
-        const tVX = (dirX * fwd * (controls.forwardVelocity??1) + rightX * str * (controls.strafeVelocity??1)) * spd;
-        const tVY = (dirY * fwd * (controls.forwardVelocity??1) + asc * (controls.ascendVelocity??1)) * spd;
-        const tVZ = (dirZ * fwd * (controls.forwardVelocity??1) + rightZ * str * (controls.strafeVelocity??1)) * spd;
-
-        cameraVelocityRef.current[0] += (tVX - cameraVelocityRef.current[0]) * 0.1;
-        cameraVelocityRef.current[1] += (tVY - cameraVelocityRef.current[1]) * 0.1;
-        cameraVelocityRef.current[2] += (tVZ - cameraVelocityRef.current[2]) * 0.1;
-        
-        // OPTIMIZATION: Reuse temp array for proposed position instead of creating new one
-        const proposedPos = tempProposedPosRef.current;
-        proposedPos[0] = currentPos[0] + cameraVelocityRef.current[0] * dt;
-        proposedPos[1] = currentPos[1] + cameraVelocityRef.current[1] * dt;
-        proposedPos[2] = currentPos[2] + cameraVelocityRef.current[2] * dt;
-
-        // Collision (Planet 1 only)
+        // --- Physics & Camera (Bypassed if hyperdrive active) ---
         let newState: 'none' | 'approaching' | 'colliding' = 'none';
         let newProximity = 0;
-        if (sessionId === '1') {
-             const dist = getPlanet1Distance(proposedPos, currentUniforms, accumulatedTimeRef.current);
-             if (dist < collisionThresholdRedRef.current) {
-                 newState = 'colliding';
-                 newProximity = 1.0;
-                 // Stop movement on collision
-                 cameraVelocityRef.current[0] = 0; cameraVelocityRef.current[1] = 0; cameraVelocityRef.current[2] = 0; 
-                 if (collisionStateRef.current !== 'colliding' && timestamp - collisionCooldownRef.current > 500) {
-                     collisionCooldownRef.current = timestamp;
-                     if (sound.enabled && audioContextRef.current && audioNodesRef.current) {
-                         audioGeneratorsRef.current.playCollisionSound();
+
+        if (warpRef.current.active) {
+            const currentWarp = warpRef.current;
+            currentWarp.progress += dt * 0.65; // Warp duration is approx ~1.5s
+            const t = Math.max(0, Math.min(1, currentWarp.progress));
+            
+            // Smooth ease-in-out curve
+            const ease = 0.5 - Math.cos(t * Math.PI) * 0.5;
+            
+            cameraRef.current.position[0] = currentWarp.startPos[0] + (currentWarp.targetPos[0] - currentWarp.startPos[0]) * ease;
+            cameraRef.current.position[1] = currentWarp.startPos[1] + (currentWarp.targetPos[1] - currentWarp.startPos[1]) * ease;
+            cameraRef.current.position[2] = currentWarp.startPos[2] + (currentWarp.targetPos[2] - currentWarp.startPos[2]) * ease;
+            
+            // Shortest rotational path calculation
+            const startYaw = currentWarp.startRot[1];
+            let targetYaw = currentWarp.targetRot[1];
+            while (targetYaw - startYaw > Math.PI) targetYaw -= Math.PI * 2;
+            while (targetYaw - startYaw < -Math.PI) targetYaw += Math.PI * 2;
+            
+            cameraRef.current.rotation[0] = currentWarp.startRot[0] + (currentWarp.targetRot[0] - currentWarp.startRot[0]) * ease;
+            cameraRef.current.rotation[1] = startYaw + (targetYaw - startYaw) * ease;
+            
+            cameraVelocityRef.current[0] = 0;
+            cameraVelocityRef.current[1] = 0;
+            cameraVelocityRef.current[2] = 0;
+            cameraAngularVelocityRef.current[0] = 0;
+            cameraAngularVelocityRef.current[1] = 0;
+            cameraRollRef.current = 0;
+            cameraRef.current.roll = 0;
+            
+            setWarpProgress(Math.round(t * 100));
+            
+            if (t >= 1.0) {
+                currentWarp.active = false;
+                setIsWarping(false);
+            }
+        } else {
+            const keys = keysPressed.current;
+            
+            // Capture gesture controls from window if enabled
+            const gw = window as any;
+            const useGestures = !!controls.enableGestureControls;
+            const sensitivity = controls.gestureSensitivity ?? 1.0;
+            const gFwd = useGestures ? (gw.gestureFwdInput || 0) * sensitivity : 0;
+            const gStr = useGestures ? (gw.gestureStrInput || 0) * sensitivity : 0;
+            const gAsc = useGestures ? (gw.gestureAscInput || 0) * sensitivity : 0;
+            const gPitch = useGestures ? (gw.gesturePitchInput || 0) * sensitivity : 0;
+            const gYaw = useGestures ? (gw.gestureYawInput || 0) * sensitivity : 0;
+
+            let fwd = (keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0) + gFwd;
+            if (controls.invertForward) fwd = -fwd;
+            let str = (keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0) + gStr;
+            if (controls.invertStrafe) str = -str;
+            let asc = (keys.has(' ') ? 1 : 0) - (keys.has('shift') ? 1 : 0) + gAsc;
+            if (controls.invertAscend) asc = -asc;
+            
+            let pitchInput = (keys.has('arrowdown') ? 1 : 0) - (keys.has('arrowup') ? 1 : 0) + gPitch;
+            if (controls.invertPitch) pitchInput = -pitchInput;
+            let yawInput = (keys.has('arrowright') ? 1 : 0) - (keys.has('arrowleft') ? 1 : 0) + gYaw;
+            if (controls.invertYaw) yawInput = -yawInput;
+
+            const [p, y] = cameraRef.current.rotation;
+            const currentPos = cameraRef.current.position;
+            const spd = 1.0;
+            const rotSpd = 1.0;
+
+            const FLIGHT_PITCH_OFFSET = 0.1;
+
+            const dirX = Math.sin(y) * Math.cos(p - FLIGHT_PITCH_OFFSET);
+            const dirY = -Math.sin(p - FLIGHT_PITCH_OFFSET);
+            const dirZ = Math.cos(y) * Math.cos(p - FLIGHT_PITCH_OFFSET);
+            const rightX = Math.cos(y);
+            const rightZ = -Math.sin(y);
+
+            const tVX = (dirX * fwd * (controls.forwardVelocity??1) + rightX * str * (controls.strafeVelocity??1)) * spd;
+            const tVY = (dirY * fwd * (controls.forwardVelocity??1) + asc * (controls.ascendVelocity??1)) * spd;
+            const tVZ = (dirZ * fwd * (controls.forwardVelocity??1) + rightZ * str * (controls.strafeVelocity??1)) * spd;
+
+            cameraVelocityRef.current[0] += (tVX - cameraVelocityRef.current[0]) * 0.1;
+            cameraVelocityRef.current[1] += (tVY - cameraVelocityRef.current[1]) * 0.1;
+            cameraVelocityRef.current[2] += (tVZ - cameraVelocityRef.current[2]) * 0.1;
+            
+            const proposedPos = tempProposedPosRef.current;
+            proposedPos[0] = currentPos[0] + cameraVelocityRef.current[0] * dt;
+            proposedPos[1] = currentPos[1] + cameraVelocityRef.current[1] * dt;
+            proposedPos[2] = currentPos[2] + cameraVelocityRef.current[2] * dt;
+
+            // Collision (Planet 1 only)
+            if (sessionId === '1') {
+                 const dist = getPlanet1Distance(proposedPos, currentUniforms, accumulatedTimeRef.current);
+                 if (dist < collisionThresholdRedRef.current) {
+                     newState = 'colliding';
+                     newProximity = 1.0;
+                     // Stop movement on collision
+                     cameraVelocityRef.current[0] = 0; cameraVelocityRef.current[1] = 0; cameraVelocityRef.current[2] = 0; 
+                     if (collisionStateRef.current !== 'colliding' && timestamp - collisionCooldownRef.current > 500) {
+                         collisionCooldownRef.current = timestamp;
+                         if (sound.enabled && audioContextRef.current && audioNodesRef.current) {
+                             audioGeneratorsRef.current.playCollisionSound();
+                         }
                      }
+                 } else if (dist < collisionThresholdYellowRef.current) {
+                     newState = 'approaching';
+                     newProximity = 1.0 - (dist - collisionThresholdRedRef.current) / (collisionThresholdYellowRef.current - collisionThresholdRedRef.current);
+                     newProximity = Math.max(0, Math.min(1, newProximity));
                  }
-             } else if (dist < collisionThresholdYellowRef.current) {
-                 newState = 'approaching';
-                 newProximity = 1.0 - (dist - collisionThresholdRedRef.current) / (collisionThresholdYellowRef.current - collisionThresholdRedRef.current);
-                 newProximity = Math.max(0, Math.min(1, newProximity));
-             }
-        }
-        
-        if (newState !== 'colliding') {
-            // OPTIMIZATION: Mutate camera position in place
-            cameraRef.current.position[0] = proposedPos[0];
-            cameraRef.current.position[1] = proposedPos[1];
-            cameraRef.current.position[2] = proposedPos[2];
-        }
-        
-        if (collisionStateRef.current !== newState) {
-            collisionStateRef.current = newState;
-            setCollisionState(newState);
-        }
-        if (Math.abs(newProximity - collisionProximityRef.current) > 0.02 || newProximity === 0 || newProximity === 1.0) {
-            collisionProximityRef.current = newProximity;
-            setCollisionProximity(newProximity);
-        }
+            }
+            
+            if (newState !== 'colliding') {
+                cameraRef.current.position[0] = proposedPos[0];
+                cameraRef.current.position[1] = proposedPos[1];
+                cameraRef.current.position[2] = proposedPos[2];
+            }
 
-        // Rotation
-        const tRotX = pitchInput * rotSpd * (controls.pitchVelocity ?? 0.3);
-        const tRotY = yawInput * rotSpd * (controls.yawVelocity ?? 0.3);
-        cameraAngularVelocityRef.current[0] += (tRotX - cameraAngularVelocityRef.current[0]) * 0.07;
-        cameraAngularVelocityRef.current[1] += (tRotY - cameraAngularVelocityRef.current[1]) * 0.07;
-        
-        // OPTIMIZATION: Mutate rotation array
-        cameraRef.current.rotation[0] = Math.max(-1.57, Math.min(1.57, p + cameraAngularVelocityRef.current[0] * dt));
-        cameraRef.current.rotation[1] = y + cameraAngularVelocityRef.current[1] * dt;
+            // Rotation
+            const tRotX = pitchInput * rotSpd * (controls.pitchVelocity ?? 0.3);
+            const tRotY = yawInput * rotSpd * (controls.yawVelocity ?? 0.3);
+            cameraAngularVelocityRef.current[0] += (tRotX - cameraAngularVelocityRef.current[0]) * 0.07;
+            cameraAngularVelocityRef.current[1] += (tRotY - cameraAngularVelocityRef.current[1]) * 0.07;
+            
+            cameraRef.current.rotation[0] = Math.max(-1.57, Math.min(1.57, p + cameraAngularVelocityRef.current[0] * dt));
+            cameraRef.current.rotation[1] = y + cameraAngularVelocityRef.current[1] * dt;
 
-        const v = cameraVelocityRef.current;
-        const currentSpeed = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-        
-        // Lower threshold for "isMoving" to avoid jarring HD snaps when slowly drifting to a stop
-        const isMovingNow = currentSpeed > 0.0001;
-        if (isMovingRef.current !== isMovingNow) {
-            isMovingRef.current = isMovingNow;
-            setIsMoving(isMovingNow);
+            cameraRollRef.current += (-yawInput * (controls.yawVelocity??0.3) * 0.75 * 0.4 - cameraRollRef.current) * 0.1;
+            cameraRef.current.roll = cameraRollRef.current;
         }
-
-        cameraRollRef.current += (-yawInput * (controls.yawVelocity??0.3) * 0.75 * 0.4 - cameraRollRef.current) * 0.1;
-        cameraRef.current.roll = cameraRollRef.current;
 
         // --- VIEW MODE TRANSITION & CAMERA ---
         const transitionRef = viewModeTransitionRef.current;
@@ -1481,7 +1645,9 @@ export const useAppStore = (): Omit<AppContextType, keyof ReturnType<typeof useD
   const allUniforms = uniforms;
 
   return {
-    activeShaderCode, sliders, uniforms, handleUniformChange, handleUniformsCommit, canvasSize, setCanvasSize, allUniforms, cameraRef, renderCameraRef, cameraVelocityRef, cameraAngularVelocityRef, pressKey, releaseKey, cameraControlsEnabled, pressedKeys, isControlsOpen, setIsControlsOpen, isHdEnabled, setIsHdEnabled, isFpsEnabled, setIsFpsEnabled, isHudEnabled, setIsHudEnabled, handleTerraformPress, handleTerraformRelease, terraformPower, terraformConfig, handleTerraformConfigChange, currentSessionId, EDITMODE, handleSessionSelect, controlConfig, handleControlConfigChange, sessionSource, handleSourceChange, soundConfig, handleSoundConfigChange, addSoundModulation, updateSoundModulation, removeSoundModulation, fileInputRef, handleLoadSessionFromFile, handleSaveSessionToFile, handleFileChange, isMoving, debugElevation, debugArpVolume, debugCameraAltitude, debugCameraPitch, debugCameraDistance, collisionState, collisionProximity, collisionThresholdRed, setCollisionThresholdRed, collisionThresholdYellow, setCollisionThresholdYellow, isInteracting, setIsInteracting: (v: boolean) => setIsInteracting(v), viewMode, setViewMode, viewModeTransition, shipConfig, effectiveShipConfigRef, handleShipConfigChange: (key: keyof ShipConfig, v: number) => setShipConfig(p => ({ ...p, [key]: v })), addShipModulation, updateShipModulation, removeShipModulation, debugCollisionPointRef, debugRayStartPointRef, debugRayEndPointRef, debugCollisionDistanceRef, getSessionStateJson, error, handleShaderError, audioInputsRef
+    activeShaderCode, sliders, uniforms, handleUniformChange, handleUniformsCommit, canvasSize, setCanvasSize, allUniforms, cameraRef, renderCameraRef, cameraVelocityRef, cameraAngularVelocityRef, pressKey, releaseKey, cameraControlsEnabled, pressedKeys, isControlsOpen, setIsControlsOpen, isHdEnabled, setIsHdEnabled, isFpsEnabled, setIsFpsEnabled, isHudEnabled, setIsHudEnabled, handleTerraformPress, handleTerraformRelease, terraformPower, terraformConfig, handleTerraformConfigChange, currentSessionId, EDITMODE, handleSessionSelect, controlConfig, handleControlConfigChange, sessionSource, handleSourceChange, soundConfig, handleSoundConfigChange, addSoundModulation, updateSoundModulation, removeSoundModulation, fileInputRef, handleLoadSessionFromFile, handleSaveSessionToFile, handleFileChange, isMoving, debugElevation, debugArpVolume, debugCameraAltitude, debugCameraPitch, debugCameraDistance, collisionState, collisionProximity, collisionThresholdRed, setCollisionThresholdRed, collisionThresholdYellow, setCollisionThresholdYellow, isInteracting, setIsInteracting: (v: boolean) => setIsInteracting(v), viewMode, setViewMode, viewModeTransition, shipConfig, effectiveShipConfigRef, handleShipConfigChange: (key: keyof ShipConfig, v: number) => setShipConfig(p => ({ ...p, [key]: v })), addShipModulation, updateShipModulation, removeShipModulation, debugCollisionPointRef, debugRayStartPointRef, debugRayEndPointRef, debugCollisionDistanceRef, getSessionStateJson, error, handleShaderError, audioInputsRef,
+    // Landmarks Navigation
+    landmarks, activeLandmarkId, setActiveLandmarkId, isWarping, warpTargetName, warpProgress, handleTriggerWarp, handleSaveLandmark, handleDeleteLandmark
   };
 };
 
