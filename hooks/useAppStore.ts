@@ -1061,7 +1061,7 @@ export const useAppStore = (): Omit<AppContextType, keyof ReturnType<typeof useD
     });
   }, []);
   
-  const handleControlConfigChange = useCallback((key: keyof ControlConfig, value: boolean | number) => {
+  const handleControlConfigChange = useCallback((key: keyof ControlConfig, value: any) => {
     setControlConfig(prev => ({ ...prev, [key]: value }));
   }, []);
 
@@ -1459,6 +1459,8 @@ export const useAppStore = (): Omit<AppContextType, keyof ReturnType<typeof useD
 
         // --- SHARED PHYSICS INPUTS FOR AUDIO & SHIP ---
         const now = timestamp / 1000.0;
+        const v = cameraVelocityRef.current;
+        const currentSpeed = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
         const acceleration = (currentSpeed - previousSpeedRef.current) / dt;
         previousSpeedRef.current = currentSpeed;
 
@@ -1652,8 +1654,7 @@ export const useAppStore = (): Omit<AppContextType, keyof ReturnType<typeof useD
 };
 
 const useDummyHandlers = () => ({
-  shaderCode: '', handleCodeEdit: () => {}, handleRun: () => {}, error: null, handleShaderError: () => {}, handleSliderConfigChange: () => {}, handleResetSliders: () => {}, handleRemoveSlider: () => {}, isSidebarVisible: false, setIsSidebarVisible: () => {}, isSettingsOpen: false, setIsSettingsOpen: () => {}, settingsRef: React.createRef<HTMLDivElement>(), playbackState: 'playing' as const, handlePlayPause: () => {}, handleStop: () => {}, handleRestart: () => {}, handleNewSessionClick: () => {}, handleLoadSession: () => {}, handleSaveSession: () => {}, handleUndo: () => {}, historyIndex: 0, handleRedo: () => {}, history: [] as any[], setIsNewSessionModalOpen: () => {}, handleConfirmNewSession: () => {}, geminiPrompt: '', setGeminiPrompt: () => {}, handleAiRequest: () => {}, handleAiSliderAdjust: () => {}, aiStage: AiStage.IDLE, geminiError: null, handleExplainCode: () => {}, isGeneratingExplanation: false, explanation: null, explanationError: null, handleClearExplanation: () => {}, handleAnalyzeShader: () => {}, isAnalyzing: false, analysisError: null, handleFetchSliderSuggestions: () => {}, isFetchingSuggestions: false, sliderSuggestions: [], suggestionsError: null, handleClearSuggestions: () => {}, usedSuggestions: new Set<string>(), handleFixCodeWithAi: () => {}, isFixingCode: false,
-  audioInputsRef: React.createRef<any>() as any
+  shaderCode: '', handleCodeEdit: () => {}, handleRun: () => {}, handleSliderConfigChange: () => {}, handleResetSliders: () => {}, handleRemoveSlider: () => {}, isSidebarVisible: false, setIsSidebarVisible: () => {}, isSettingsOpen: false, setIsSettingsOpen: () => {}, settingsRef: React.createRef<HTMLDivElement>(), playbackState: 'playing' as const, handlePlayPause: () => {}, handleStop: () => {}, handleRestart: () => {}, handleNewSessionClick: () => {}, handleLoadSession: () => {}, handleSaveSession: () => {}, handleUndo: () => {}, historyIndex: 0, handleRedo: () => {}, history: [] as any[], setIsNewSessionModalOpen: () => {}, handleConfirmNewSession: () => {}, geminiPrompt: '', setGeminiPrompt: () => {}, handleAiRequest: () => {}, handleAiSliderAdjust: () => {}, aiStage: AiStage.IDLE, geminiError: null, handleExplainCode: () => {}, isGeneratingExplanation: false, explanation: null, explanationError: null, handleClearExplanation: () => {}, handleAnalyzeShader: () => {}, isAnalyzing: false, analysisError: null, handleFetchSliderSuggestions: () => {}, isFetchingSuggestions: false, sliderSuggestions: [], suggestionsError: null, handleClearSuggestions: () => {}, usedSuggestions: new Set<string>(), handleFixCodeWithAi: () => {}, isFixingCode: false
 });
 
 export const useAppStoreComplete = (): AppContextType => {

@@ -1,5 +1,6 @@
 {
   "name": "Shader Pilot",
   "description": "A retro-scifi GLSL exploration ship. Travel through procedurally generated 3D fractal worlds with heavy analog aesthetics, scanlines, and vangelis-style synth soundtracks.",
-  "requestFramePermissions": ["camera"]
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -68,10 +68,13 @@ export const ShaderCanvas: React.FC = React.memo(() => {
     cameraRef, 
     isHdEnabled, 
     isFpsEnabled, 
-    isPlaying, 
-    shouldReduceQuality,
+    playbackState, 
+    isMoving,
     audioInputsRef
   } = useAppContext();
+
+  const isPlaying = playbackState === 'playing';
+  const shouldReduceQuality = isMoving;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fpsRef = useRef<HTMLDivElement>(null);
